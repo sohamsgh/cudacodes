@@ -21,7 +21,7 @@ and will contains its local max and local norm in shared memory. Then, we perfor
 operations to compute the final max and norm factor. Also, we compute maxes and norms
 in one pass itself.
 */
-__global__ void softmax_kernel_2_1(float* __restrict__ xd, float* __restrict__ resd, int M, int N) {
+__global__ void softmax_kernel_6(float* __restrict__ xd, float* __restrict__ resd, int M, int N) {
     // max and norm reduction will happen in shared memory (static)
     __shared__ float smem[1024];  // needs to hold local_max and local_norm together , so 2 *(number of threads in a block) floats, 
 
@@ -66,13 +66,13 @@ __global__ void softmax_kernel_2_1(float* __restrict__ xd, float* __restrict__ r
         if (tid < stride) {
 	    float max1 = smem[tid];
 	    float max2 = smem[tid+stride];
-	    local_max = max(max1, max2);
+	    local_max = fmaxf(max1, max2);
 	    // correct each partial norm using property of exponentials and reduce
 	    // One of the two reduction terms should be 1
 	    local_norm = smem[tid + blockDim.x] * expf(max1 - local_max) + 
 		         smem[tid + blockDim.x + stride] * expf(max2  - local_max);
 	    smem[tid] = local_max;
-	    smem[tid + blockDim.x] += local_norm;
+	    smem[tid + blockDim.x] = local_norm; //note that the operation is '=', not '+='. Reduction happened in local_norm above
         }
         // sync barrier before next iteration to ensure correctness
         __syncthreads();
@@ -92,9 +92,9 @@ __global__ void softmax_kernel_2_1(float* __restrict__ xd, float* __restrict__ r
 }
 
 /*
-Runs the online softmax kernel: `id = 2_1`
+Runs the online softmax kernel: `id = 6`
 */
-void run_kernel_2_1(float* __restrict__ matd, float* __restrict__ resd, int M, int N) {
+float run_kernel_6(float* __restrict__ matd, float* __restrict__ resd, int M, int N) {
     // grid size and block size for this kernel
     // change as necessary
     dim3 block_size(512);
@@ -106,7 +106,7 @@ void run_kernel_2_1(float* __restrict__ matd, float* __restrict__ resd, int M, i
     float ms = 0.f;
 
     CUDA_CHECK(cudaEventRecord(start));
-    softmax_kernel_2_1<<<grid_size, block_size>>>(matd, resd, M, N);
+    softmax_kernel_6<<<grid_size, block_size>>>(matd, resd, M, N);
     CUDA_CHECK(cudaEventRecord(stop));
     CUDA_CHECK(cudaEventSynchronize(stop));
     CUDA_CHECK(cudaEventElapsedTime(&ms, start, stop));
@@ -114,4 +114,6 @@ void run_kernel_2_1(float* __restrict__ matd, float* __restrict__ resd, int M, i
 
     CUDA_CHECK(cudaEventDestroy(start));
     CUDA_CHECK(cudaEventDestroy(stop));
+
+    return ms;
 }

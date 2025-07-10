@@ -87,7 +87,7 @@ __global__ void softmax_kernel_2(float* __restrict__ xd, float* __restrict__ res
 /*
 Runs the online softmax kernel: `id = 2`
 */
-void run_kernel_2(float* __restrict__ matd, float* __restrict__ resd, int M, int N) {
+float run_kernel_2(float* __restrict__ matd, float* __restrict__ resd, int M, int N) {
     // grid size and block size for this kernel
     // change as necessary
     dim3 block_size(1024);
@@ -107,4 +107,6 @@ void run_kernel_2(float* __restrict__ matd, float* __restrict__ resd, int M, int
 
     CUDA_CHECK(cudaEventDestroy(start));
     CUDA_CHECK(cudaEventDestroy(stop));
+
+    return ms;
 }

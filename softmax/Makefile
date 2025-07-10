@@ -22,16 +22,17 @@ INCLUDE_DIR = include
 KERNELS_DIR = kernels
 BUILD_DIR = build
 
+MODE = test
 # Automatically detect all .cu files
 KERNEL_SOURCES = $(wildcard $(KERNELS_DIR)/*.cu)
-ROOT_SOURCES = bench.cu
+ROOT_SOURCES = $(MODE).cu
 CUDA_SOURCES = $(KERNEL_SOURCES) $(ROOT_SOURCES)
 
 # Generate object file names
-CUDA_OBJECTS = $(patsubst $(KERNELS_DIR)/%.cu,$(BUILD_DIR)/%$(OBJ_EXT),$(KERNEL_SOURCES)) $(BUILD_DIR)/bench$(OBJ_EXT)
+CUDA_OBJECTS = $(patsubst $(KERNELS_DIR)/%.cu,$(BUILD_DIR)/%$(OBJ_EXT),$(KERNEL_SOURCES)) $(BUILD_DIR)/$(MODE)$(OBJ_EXT)
 
 # Output executable
-OUTPUT = softmax$(EXEC_EXT)
+OUTPUT = softmax$(MODE)$(EXEC_EXT)
 
 # Rules
 all: $(OUTPUT)
@@ -44,7 +45,7 @@ $(BUILD_DIR)/%$(OBJ_EXT): $(KERNELS_DIR)/%.cu | $(BUILD_DIR)
 	$(NVCC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Rule for compiling root directory .cu files
-$(BUILD_DIR)/bench$(OBJ_EXT): bench.cu | $(BUILD_DIR)
+$(BUILD_DIR)/$(MODE)$(OBJ_EXT): $(MODE).cu | $(BUILD_DIR)
 	$(NVCC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Create the build directory

@@ -4,11 +4,13 @@
 
 #include "blocktiling_5.cuh"
 #include "cuda_utils.cuh"
+#include "utils.h"
 #include "naive_0.cuh"
 #include "online_1.cuh"
 #include "sharedmem_2.cuh"
 #include "shfl_3.cuh"
 #include "vectorized_4.cuh"
+#include "sharedmem_6.cuh"
 
 /*
 Helper function to generate a clamped random number sampled from a
@@ -34,6 +36,7 @@ int main() {
     // allocate and initialize host matrix
     float* mat = (float*)malloc(totalsize);
     float* res = (float*)malloc(totalsize);
+    float* ref = (float*)malloc(totalsize);
     for (int i = 0; i < matsize; i++) {
         mat[i] = random_normal_clamped(-10, 10);
     }
@@ -60,7 +63,9 @@ int main() {
     cudaEventElapsedTime(&ms, start, stop);
     printf(">> Host to device transfer time: %f ms\n", ms);
 
-    run_kernel_4(matd, resd, M, N);
+    printf(">> Running kernel 6");
+    
+    run_kernel_6(matd, resd, M, N);
 
     cudaEventRecord(start);
     CUDA_CHECK(cudaMemcpy(res, resd, totalsize, cudaMemcpyDeviceToHost));
@@ -69,8 +74,14 @@ int main() {
     cudaEventElapsedTime(&ms, start, stop);
     printf(">> Device to host transfer time: %f ms\n", ms);
 
+    // do a softmax on CPU
+    softmax_cpu(mat, ref, M, N);
+    // compare CPU results and  GPU results
+    compare_matrices(res, ref, M, N);
+
     free(mat);
     free(res);
+    free(ref);
     cudaFree(matd);
     cudaFree(resd);
 }

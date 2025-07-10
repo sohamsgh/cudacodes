@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 #include "cuda_utils.cuh"
+//#include "sharedmem_2.cuh"
+#include "sharedmem_6.cuh"
 #include "vectorized_4.cuh"
 
 /*
@@ -25,12 +27,13 @@ float random_normal_clamped(float min, float max) {
 Benchmarks a kernel for different sizes
 */
 void benchmark_kernel_for_sizes(int minN, int maxN) {
-    FILE *exec_time_file = fopen("benchmarks/exec_time_ms_cuda.txt", "w");
+    //FILE *exec_time_file = fopen("benchmarks/exec_time_ms_cuda.txt", "w");
+    FILE *exec_time_file = fopen("benchmarks/exec_time_ms_cuda.txt", "a");
 
     if (exec_time_file == NULL) {
         perror("Error opening the file for GFLOPS.\n");
     }
-
+    fprintf(exec_time_file, "# sharedmem_6\n");
     for (int N = minN; N < maxN; N *= 2) {
         int M = 1024;  // matrix size (M, N)
 
@@ -69,9 +72,10 @@ void benchmark_kernel_for_sizes(int minN, int maxN) {
         printf(">> Host to device transfer time: %f ms\n", ms);
 
         // run softmax kernel
-        ms = run_kernel_4(matd, resd, M, N);
+        //ms = run_kernel_4(matd, resd, M, N);
+        ms = run_kernel_6(matd, resd, M, N);
 
-        fprintf(exec_time_file, "%d %f\n", M, ms);
+        fprintf(exec_time_file, "%d %d %f\n", M, N, ms);
 
         cudaEventRecord(start);
         CUDA_CHECK(cudaMemcpy(res, resd, totalsize, cudaMemcpyDeviceToHost));
