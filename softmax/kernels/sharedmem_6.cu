@@ -62,6 +62,7 @@ __global__ void softmax_kernel_6(float* __restrict__ xd, float* __restrict__ res
 
     // block-level reduction in O(log(N)) time over all threads
     // is faster than linear reduction over all threads
+    // We reduce max and norm in the same iteration - increases arithmatic intensity
     for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
         if (tid < stride) {
 	    float max1 = smem[tid];

@@ -7,6 +7,7 @@
 //#include "sharedmem_2.cuh"
 #include "sharedmem_6.cuh"
 #include "vectorized_4.cuh"
+#include "shfl_7.cuh"
 
 /*
 Helper function to generate a clamped random number sampled from a
@@ -33,7 +34,7 @@ void benchmark_kernel_for_sizes(int minN, int maxN) {
     if (exec_time_file == NULL) {
         perror("Error opening the file for GFLOPS.\n");
     }
-    fprintf(exec_time_file, "# sharedmem_6\n");
+    fprintf(exec_time_file, "# shfl_7\n");
     for (int N = minN; N < maxN; N *= 2) {
         int M = 1024;  // matrix size (M, N)
 
@@ -73,7 +74,7 @@ void benchmark_kernel_for_sizes(int minN, int maxN) {
 
         // run softmax kernel
         //ms = run_kernel_4(matd, resd, M, N);
-        ms = run_kernel_6(matd, resd, M, N);
+        ms = run_kernel_7(matd, resd, M, N);
 
         fprintf(exec_time_file, "%d %d %f\n", M, N, ms);
 

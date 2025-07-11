@@ -11,6 +11,7 @@
 #include "shfl_3.cuh"
 #include "vectorized_4.cuh"
 #include "sharedmem_6.cuh"
+#include "shfl_7.cuh"
 
 /*
 Helper function to generate a clamped random number sampled from a
@@ -63,9 +64,9 @@ int main() {
     cudaEventElapsedTime(&ms, start, stop);
     printf(">> Host to device transfer time: %f ms\n", ms);
 
-    printf(">> Running kernel 6");
+    printf(">> Running kernel 7");
     
-    run_kernel_6(matd, resd, M, N);
+    run_kernel_7(matd, resd, M, N);
 
     cudaEventRecord(start);
     CUDA_CHECK(cudaMemcpy(res, resd, totalsize, cudaMemcpyDeviceToHost));
